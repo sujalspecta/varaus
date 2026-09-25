@@ -1,5 +1,5 @@
 import React, { Component } from "react";
-import Slider from "react-slick";
+import Sliderc from "react-slick";
 import "slick-carousel/slick/slick.css";
 import "slick-carousel/slick/slick-theme.css";
 import {Link} from 'react-router-dom'
@@ -8,7 +8,7 @@ import dsn2 from '../../images/destination/img-5.jpg'
 import dsn3 from '../../images/destination/img-9.jpg'
 import dsn4 from '../../images/destination/img-7.jpg'
 import dsn5 from '../../images/destination/img-8.jpg'
-
+const Slider = Sliderc.default || Sliderc
 
 class Destination2 extends Component {
     

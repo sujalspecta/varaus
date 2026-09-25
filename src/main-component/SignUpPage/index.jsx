@@ -1,14 +1,11 @@
-import React, {useState} from 'react';
-import SimpleReactValidator from "simple-react-validator";
-import {toast} from "react-toastify";
+import React, { useState } from 'react';
+import { toast } from "react-toastify";
 import TextField from "@mui/material/TextField";
 import Button from "@mui/material/Button";
-import {Link, useNavigate} from "react-router-dom";
-
+import { Link, useNavigate } from "react-router-dom";
 
 const SignUpPage = (props) => {
-
-    const push = useNavigate()
+    const push = useNavigate();
 
     const [value, setValue] = useState({
         email: '',
@@ -17,36 +14,104 @@ const SignUpPage = (props) => {
         confirm_password: '',
     });
 
-    const changeHandler = (e) => {
-        setValue({...value, [e.target.name]: e.target.value});
-        validator.showMessages();
+    const [errors, setErrors] = useState({
+        email: '',
+        full_name: '',
+        password: '',
+        confirm_password: '',
+    });
+
+    // Validates inputs dynamically using native rules matching your old configuration
+    const validateField = (name, val, allValues = value) => {
+        let errorMsg = '';
+        
+        if (name === 'full_name') {
+            if (!val) {
+                errorMsg = 'The name field is required.';
+            } else if (!/^[A-Za-z\s]+$/.test(val)) {
+                errorMsg = 'The name may only contain letters.';
+            }
+        }
+        
+        if (name === 'email') {
+            if (!val) {
+                errorMsg = 'The email field is required.';
+            } else if (!/\S+@\S+\.\S+/.test(val)) {
+                errorMsg = 'The email must be a valid email address.';
+            }
+        }
+        
+        if (name === 'password') {
+            if (!val) {
+                errorMsg = 'The password field is required.';
+            }
+        }
+        
+        if (name === 'confirm_password') {
+            if (!val) {
+                errorMsg = 'The confirm password field is required.';
+            } else if (val !== allValues.password) {
+                errorMsg = 'The confirm password confirmation does not match.';
+            }
+        }
+
+        return errorMsg;
     };
 
-    const [validator] = React.useState(new SimpleReactValidator({
-        className: 'errorMessage'
-    }));
+    const changeHandler = (e) => {
+        const { name, value: fieldVal } = e.target;
+        const updatedValues = { ...value, [name]: fieldVal };
+        setValue(updatedValues);
+        
+        // Handle validation changes dynamically
+        const errorMsg = validateField(name, fieldVal, updatedValues);
+        setErrors(prev => ({ ...prev, [name]: errorMsg }));
 
+        // Cross-validate confirm password if the main password updates
+        if (name === 'password' && value.confirm_password) {
+            const confirmErr = validateField('confirm_password', value.confirm_password, updatedValues);
+            setErrors(prev => ({ ...prev, confirm_password: confirmErr }));
+        }
+    };
 
     const submitForm = (e) => {
         e.preventDefault();
-        if (validator.allValid()) {
-            setValue({
-                email: '',
-                full_name: '',
-                password: '',
-                confirm_password: '',
+
+        // Run final checks across all fields
+        const nameErr = validateField('full_name', value.full_name);
+        const emailErr = validateField('email', value.email);
+        const passwordErr = validateField('password', value.password);
+        const confirmErr = validateField('confirm_password', value.confirm_password);
+
+        if (nameErr || emailErr || passwordErr || confirmErr) {
+            setErrors({
+                full_name: nameErr,
+                email: emailErr,
+                password: passwordErr,
+                confirm_password: confirmErr
             });
-            validator.hideMessages();
-            toast.success('Registration Complete successfully!');
-            push('/login');
-        } else {
-            validator.showMessages();
             toast.error('Empty field is not allowed!');
+            return;
         }
+
+        toast.success('Registration Complete successfully!');
+        setValue({
+            email: '',
+            full_name: '',
+            password: '',
+            confirm_password: '',
+        });
+        setErrors({
+            email: '',
+            full_name: '',
+            password: '',
+            confirm_password: '',
+        });
+        push('/login');
     };
+
     return (
         <div className="loginWrapper">
-
             <div className="loginForm">
                 <h2>Signup</h2>
                 <p>Signup your account</p>
@@ -61,13 +126,14 @@ const SignUpPage = (props) => {
                                 variant="outlined"
                                 name="full_name"
                                 label="Name"
-                                InputLabelProps={{
-                                    shrink: true,
+                                slotProps={{
+                                    label: { shrink: true }
                                 }}
-                                onBlur={(e) => changeHandler(e)}
-                                onChange={(e) => changeHandler(e)}
+                                onBlur={changeHandler}
+                                onChange={changeHandler}
+                                error={Boolean(errors.full_name)}
+                                helperText={errors.full_name}
                             />
-                            {validator.message('full name', value.full_name, 'required|alpha')}
                         </div>
                         <div className='col-12 mb-4'>
                             <TextField
@@ -78,13 +144,14 @@ const SignUpPage = (props) => {
                                 variant="outlined"
                                 name="email"
                                 label="E-mail"
-                                InputLabelProps={{
-                                    shrink: true,
+                                slotProps={{
+                                    label: { shrink: true }
                                 }}
-                                onBlur={(e) => changeHandler(e)}
-                                onChange={(e) => changeHandler(e)}
+                                onBlur={changeHandler}
+                                onChange={changeHandler}
+                                error={Boolean(errors.email)}
+                                helperText={errors.email}
                             />
-                            {validator.message('email', value.email, 'required|email')}
                         </div>
                         <div className='col-12 mb-4'>
                             <TextField
@@ -94,31 +161,35 @@ const SignUpPage = (props) => {
                                 value={value.password}
                                 variant="outlined"
                                 name="password"
+                                type="password"
                                 label="Password"
-                                InputLabelProps={{
-                                    shrink: true,
+                                slotProps={{
+                                    label: { shrink: true }
                                 }}
-                                onBlur={(e) => changeHandler(e)}
-                                onChange={(e) => changeHandler(e)}
+                                onBlur={changeHandler}
+                                onChange={changeHandler}
+                                error={Boolean(errors.password)}
+                                helperText={errors.password}
                             />
-                            {validator.message('password', value.password, 'required')}
                         </div>
                         <div className='col-12 mb-4'>
                             <TextField
                                 className="inputOutline"
                                 fullWidth
                                 placeholder="Confirm Password"
-                                value={value.password}
+                                value={value.confirm_password} // Fixed typo here
                                 variant="outlined"
                                 name="confirm_password"
+                                type="password"
                                 label="Confirm Password"
-                                InputLabelProps={{
-                                    shrink: true,
+                                slotProps={{
+                                    label: { shrink: true }
                                 }}
-                                onBlur={(e) => changeHandler(e)}
-                                onChange={(e) => changeHandler(e)}
+                                onBlur={changeHandler}
+                                onChange={changeHandler}
+                                error={Boolean(errors.confirm_password)}
+                                helperText={errors.confirm_password}
                             />
-                            {validator.message('confirm password', value.confirm_password, `in:${value.password}`)}
                         </div>
                         <div className='col-12'>
                             <div className="formFooter">
@@ -139,7 +210,7 @@ const SignUpPage = (props) => {
                 </div>
             </div>
         </div>
-    )
+    );
 };
 
 export default SignUpPage;

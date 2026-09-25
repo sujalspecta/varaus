@@ -1,44 +1,64 @@
-import React, {useState} from 'react';
-import SimpleReactValidator from "simple-react-validator";
-import {toast} from "react-toastify";
+import React, { useState } from 'react';
+import { toast } from "react-toastify";
 import TextField from "@mui/material/TextField";
 import Button from "@mui/material/Button";
-import {Link, useNavigate} from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 
 const ForgotPassword = (props) => {
 
-    const push = useNavigate()
+    const push = useNavigate();
 
     const [value, setValue] = useState({
         email: '',
     });
 
-    const changeHandler = (e) => {
-        setValue({...value, [e.target.name]: e.target.value});
-        validator.showMessages();
+    const [errors, setErrors] = useState({
+        email: '',
+    });
+
+    const validateField = (name, val) => {
+        let errorMsg = '';
+        if (name === 'email') {
+            if (!val) {
+                errorMsg = 'The email field is required.';
+            } else if (!/\S+@\S+\.\S+/.test(val)) {
+                errorMsg = 'The email must be a valid email address.';
+            }
+        }
+        return errorMsg;
     };
 
-    const [validator] = React.useState(new SimpleReactValidator({
-        className: 'errorMessage'
-    }));
+    const changeHandler = (e) => {
+        const { name, value: fieldVal } = e.target;
+        setValue({ ...value, [name]: fieldVal });
+        
+        const errorMsg = validateField(name, fieldVal);
+        setErrors(prev => ({ ...prev, [name]: errorMsg }));
+    };
 
     const submitForm = (e) => {
         e.preventDefault();
-        if (validator.allValid()) {
-            setValue({
-                email: '',
-            });
-            validator.hideMessages();
-            toast.success('You successfully Login!');
-            push('/login');
-        } else {
-            validator.showMessages();
+
+        const emailErr = validateField('email', value.email);
+
+        if (emailErr) {
+            setErrors({ email: emailErr });
             toast.error('Empty field is not allowed!');
+            return;
         }
+
+        toast.success('Password reset link sent successfully!');
+        setValue({
+            email: '',
+        });
+        setErrors({
+            email: '',
+        });
+        push('/login');
     };
+
     return (
         <div className="loginWrapper">
-
             <div className="loginForm">
                 <h2>Forgot Password</h2>
                 <p>Reset your account password</p>
@@ -53,18 +73,21 @@ const ForgotPassword = (props) => {
                                 variant="outlined"
                                 name="email"
                                 label="E-mail"
-                                InputLabelProps={{
-                                    shrink: true,
+                                // Replaced InputLabelProps with modern safe slotProps
+                                slotProps={{
+                                    label: { shrink: true }
                                 }}
-                                onBlur={(e) => changeHandler(e)}
-                                onChange={(e) => changeHandler(e)}
+                                onBlur={changeHandler}
+                                onChange={changeHandler}
+                                error={Boolean(errors.email)}
+                                helperText={errors.email}
                             />
-                            {validator.message('email', value.email, 'required|email')}
                         </div>
                         <div className='col-12'>
                             <div className="formFooter">
-                                <Button fullWidth className="cBtn cBtnLarge cBtnTheme" type="submit">Resend
-                                    Password</Button>
+                                <Button fullWidth className="cBtn cBtnLarge cBtnTheme" type="submit">
+                                    Resend Password
+                                </Button>
                             </div>
                             <div className="loginWithSocial">
                                 <Button className="facebook"><i className="fa fa-facebook"></i></Button>
@@ -81,7 +104,7 @@ const ForgotPassword = (props) => {
                 </div>
             </div>
         </div>
-    )
+    );
 };
 
 export default ForgotPassword;

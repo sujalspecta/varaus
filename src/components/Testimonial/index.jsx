@@ -1,12 +1,12 @@
 import React, { Component } from "react";
-import Slider from "react-slick";
+import Sliderc from "react-slick";
 import "slick-carousel/slick/slick.css";
 import "slick-carousel/slick/slick-theme.css";
 import ts1 from '../../images/testimonial/img-1.jpg'
 import ts2 from '../../images/testimonial/img-2.jpg'
 import ts3 from '../../images/testimonial/img-3.jpg'
 import './style.css'
-
+const Slider = Sliderc.default || Sliderc
 
 class Testimonial extends Component {
     render() {

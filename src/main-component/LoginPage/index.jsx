@@ -1,19 +1,15 @@
-import React, {useState} from 'react';
-import SimpleReactValidator from "simple-react-validator";
-import {toast} from "react-toastify";
+import React, { useState } from 'react';
+import { toast } from "react-toastify";
 import TextField from "@mui/material/TextField";
 import Button from "@mui/material/Button";
 import FormControlLabel from "@mui/material/FormControlLabel";
 import Checkbox from "@mui/material/Checkbox";
-import {Link, useNavigate} from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 
 import './style.scss';
 
-
-
 const LoginPage = (props) => {
-
-    const push = useNavigate()
+    const push = useNavigate();
 
     const [value, setValue] = useState({
         email: 'user@gmail.com',
@@ -21,43 +17,65 @@ const LoginPage = (props) => {
         remember: false,
     });
 
+    const [errors, setErrors] = useState({
+        email: '',
+        password: ''
+    });
+
+    const validateField = (name, val) => {
+        let errorMsg = '';
+        if (name === 'email') {
+            if (!val) {
+                errorMsg = 'The email field is required.';
+            } else if (!/\S+@\S+\.\S+/.test(val)) {
+                errorMsg = 'The email must be a valid email address.';
+            }
+        }
+        if (name === 'password') {
+            if (!val) {
+                errorMsg = 'The password field is required.';
+            }
+        }
+        return errorMsg;
+    };
+
     const changeHandler = (e) => {
-        setValue({...value, [e.target.name]: e.target.value});
-        validator.showMessages();
+        const { name, value: fieldVal } = e.target;
+        setValue({ ...value, [name]: fieldVal });
+        
+        const errorMsg = validateField(name, fieldVal);
+        setErrors(prev => ({ ...prev, [name]: errorMsg }));
     };
 
     const rememberHandler = () => {
-        setValue({...value, remember: !value.remember});
+        setValue({ ...value, remember: !value.remember });
     };
-
-    const [validator] = React.useState(new SimpleReactValidator({
-        className: 'errorMessage'
-    }));
-
-
 
     const submitForm = (e) => {
         e.preventDefault();
-        if (validator.allValid()) {
-            setValue({
-                email: '',
-                password: '',
-                remember: false
-            });
-            validator.hideMessages();
 
-            const userRegex = /^user+.*/gm;
-            const email = value.email;
+        const emailErr = validateField('email', value.email);
+        const passwordErr = validateField('password', value.password);
 
-            if (email.match(userRegex)) {
-                toast.success('You successfully Login on Varaus !');
-                push('/home');
-            }
-        } else {
-            validator.showMessages();
+        if (emailErr || passwordErr) {
+            setErrors({ email: emailErr, password: passwordErr });
             toast.error('Empty field is not allowed!');
+            return;
+        }
+
+        const userRegex = /^user+.*/gm;
+        const email = value.email;
+
+        if (email.match(userRegex)) {
+            toast.success('You successfully Login on Varaus !');
+            setValue({ email: '', password: '', remember: false });
+            setErrors({ email: '', password: '' });
+            push('/home');
+        } else {
+            toast.error('Invalid user criteria.');
         }
     };
+
     return (
         <div className="loginWrapper">
             <div className="loginForm">
@@ -74,13 +92,15 @@ const LoginPage = (props) => {
                                 variant="outlined"
                                 name="email"
                                 label="E-mail"
-                                InputLabelProps={{
-                                    shrink: true,
+                                // Replaced InputLabelProps with modern safe slotProps
+                                slotProps={{
+                                    label: { shrink: true }
                                 }}
-                                onBlur={(e) => changeHandler(e)}
-                                onChange={(e) => changeHandler(e)}
+                                onBlur={changeHandler}
+                                onChange={changeHandler}
+                                error={Boolean(errors.email)}
+                                helperText={errors.email}
                             />
-                            {validator.message('email', value.email, 'required|email')}
                         </div>
                         <div className='col-12 mb-4'>
                             <TextField
@@ -92,13 +112,15 @@ const LoginPage = (props) => {
                                 name="password"
                                 type="password"
                                 label="Password"
-                                InputLabelProps={{
-                                    shrink: true,
+                                // Replaced InputLabelProps with modern safe slotProps
+                                slotProps={{
+                                    label: { shrink: true }
                                 }}
-                                onBlur={(e) => changeHandler(e)}
-                                onChange={(e) => changeHandler(e)}
+                                onBlur={changeHandler}
+                                onChange={changeHandler}
+                                error={Boolean(errors.password)}
+                                helperText={errors.password}
                             />
-                            {validator.message('password', value.password, 'required')}
                         </div>
                         <div className='col-12'>
                             <div className="formAction">
@@ -126,7 +148,7 @@ const LoginPage = (props) => {
                 </div>
             </div>
         </div>
-    )
+    );
 };
 
 export default LoginPage;

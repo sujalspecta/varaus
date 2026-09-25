@@ -1,11 +1,11 @@
 import React, { Component } from "react";
-import Slider from "react-slick";
+import Sliderc from "react-slick";
 import "slick-carousel/slick/slick.css";
 import "slick-carousel/slick/slick-theme.css";
 import rm1 from '../../../images/room/img-4.jpg'
 import rm2 from '../../../images/room/img-5.jpg'
 import rm3 from '../../../images/room/img-6.jpg'
-
+const Slider = Sliderc.default || Sliderc
 
 class Rooms extends Component {
     render() {
