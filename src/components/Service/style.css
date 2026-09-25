@@ -1,0 +1,41 @@
+/*===================================================
+#4.2 service-section
+=====================================================*/
+
+.service-area .col{
+    padding: 0;
+  }
+  .service-item{
+    padding: 32px;
+    text-align: center;
+    border:1px solid #e1ebfe;
+    margin-left: -1px;
+    margin-top: -1px;
+  }
+  .service-item .fi:before{
+    color:#00d690;
+    font-size:50px;
+  }
+  .service-text p{
+    color: #687693;
+  }
+  .service-text h2{
+    font-size: 30px;
+    color: #283a5e;
+    font-weight: 700;
+    margin-bottom: 15px;
+  }
+
+  .service-text h2 a{
+    color: #283a5e;
+  }
+
+  .service-text h2 a:hover{
+    color: #00d690;
+  }
+
+  @media(max-width: 590px){
+    .service-area .col{
+      padding: 0 15px;
+    }
+  }
